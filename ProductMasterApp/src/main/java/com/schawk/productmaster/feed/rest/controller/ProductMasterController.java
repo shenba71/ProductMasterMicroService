@@ -76,8 +76,11 @@ public class ProductMasterController {
     		@RequestParam(value="color_code",required=true) String colorCode,
     		@RequestParam(value="color_description",required=false) String colorDescription) throws Exception{
     		Map<String,String> colorMetaData = new HashMap<String,String>();
+    		if(colorCode!=null && !colorCode.isEmpty()){
     		colorMetaData.put("colorCode", colorCode);
+    		}if(colorMetaData!=null && !colorMetaData.isEmpty()){
     		colorMetaData.put("colorDescription", colorDescription);
+    		}
     				return productMasterStagingService.saveColorDatasToProductMetadata(colorMetaData,styleNumber);
     	
     	

@@ -39,7 +39,7 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
     private static final Logger LOG = LoggerFactory.getLogger(ProductMasterFeedDaoImpl.class);
 
     private static final String COLLECTION_NAME = "product_master";
-    private static final String PRODUCT_STYLE = "Product style";
+    private static final String PRODUCT_STYLE = "styleNumber";
     private static final String PRODUCT_COLOR = "Product color";
     private static final String PRODUCT_SIZE = "Product size";
 
