@@ -7,8 +7,8 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version: '1.2'
-        classpath group: 'net.ltgt.gradle', name: 'gradle-apt-plugin', version: '0.6'
+        //classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version: '1.2'
+        //classpath group: 'net.ltgt.gradle', name: 'gradle-apt-plugin', version: '0.6'
         classpath group: 'org.springframework.boot', name: 'spring-boot-gradle-plugin', version: spring_boot_version
         classpath group: 'org.springframework.build.gradle', name: 'propdeps-plugin', version: '0.0.7'
         classpath group: 'se.transmode.gradle', name: 'gradle-docker', version: '1.2'
