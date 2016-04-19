@@ -18,5 +18,9 @@ public interface ProductMasterFeedDao {
 	public String saveColorMetaData(String colorMetaData, String styleNumber)throws Exception;
 	
 	public String saveSizeMetaData(String sizeMetaData, String styleNumber, String colorNumber)throws Exception;
+	
+	public String updateColorMetaData(String colorMetaData, String styleNumber, String colorNumber)throws Exception;
+	
+	public String updateSizeMetaData(String colorMetaData, String styleNumber, String colorNumber)throws Exception;
 
 }

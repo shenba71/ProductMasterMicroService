@@ -1,6 +1,8 @@
 package com.schawk.productmaster.feed.service.impl;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,8 @@ public class ProductMasterStagingServiceImpl implements ProductMasterStagingServ
    	
     }
     
+    
+    
     private String convertMapToJson(Map productMap){
     	String productMetaDataJson = null;
     	try{
@@ -62,6 +66,31 @@ public class ProductMasterStagingServiceImpl implements ProductMasterStagingServ
     	}
     	return productMetaDataJson;
     }
+    
+    private String convertUpdatedString(Map valuMap){
+    	Map<String,String> updatedMap = new HashMap<String, String>();
+    	Set<String> keySet = valuMap.keySet();
+    	for (String object : keySet) {
+    		updatedMap.put("colors.$.color."+object, (String) valuMap.get(object));
+		}
+    	return convertMapToJson(updatedMap);
+    	
+    }
+
+	@Override
+	public String updateColorDatasToProductMetadata(Map valueMap,
+			String styleNumber, String colorNumber) throws Exception {
+		String updatedColorData = convertUpdatedString(valueMap);
+		return productMasterFeedDao.updateColorMetaData(updatedColorData, styleNumber, colorNumber);
+	}
+
+	@Override
+	public String updateSizeDatasToProductMetadata(Map valueMap,
+			String styleNumber, String colorNumber, String sizeCode)
+			throws Exception {
+		String updatedSizeDatas = convertUpdatedString(valueMap);
+		return productMasterFeedDao.updateSizeMetaData(updatedSizeDatas, styleNumber, colorNumber);
+	}
     
 
 }

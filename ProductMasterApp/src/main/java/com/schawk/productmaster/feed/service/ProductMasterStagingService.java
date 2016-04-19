@@ -13,4 +13,7 @@ public interface ProductMasterStagingService {
 	String saveSizeDatasToProductMetadata(Map valueMap, String styleNumber, String colorNumber)
 			throws Exception;
 
+	public String updateColorDatasToProductMetadata(Map valueMap, String styleNumber,String colorNumber) throws Exception;
+	
+	public String updateSizeDatasToProductMetadata(Map valueMap, String styleNumber,String colorNumber, String sizeCode) throws Exception;
 }
