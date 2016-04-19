@@ -41,4 +41,53 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
         return searchResults;
     }
 
+    /**
+     * Search the product with the specified color
+     */
+    @Override
+    public String searchProductUsingStyleAndColor(String styleNumber, String colorCode) {
+        String searchResult = null;
+        try {
+            searchResult = productMasterFeedDao.searchFeedByStyleAndColor(styleNumber, colorCode);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return searchResult;
+    }
+
+    /**
+     * Search the product details of the given styleNumber and fields that should be included in the query results.
+     */
+    @Override
+    public String searchProductUsingStyle(String styleNumber, String[] field) {
+        String searchResult = null;
+        try {
+            searchResult = productMasterFeedDao.searchFeedByStyle(styleNumber, field);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return searchResult;
+    }
+
+    /**
+     * This is a refined search applicable only to specified fields
+     */
+    @Override
+    public List<String> searchProducts(String columnName, String[] columnValues,
+            String[] columnsToInclude) {
+        List<String> searchResult = null;
+        String colorCodePrefix = "colors.color.";
+        try {
+            if (columnName.equalsIgnoreCase("colorCode")
+                    || columnName.equalsIgnoreCase("colorDescription")) {
+                columnName = colorCodePrefix.concat(columnName);
+            }
+            searchResult = productMasterFeedDao.searchProducts(columnName, columnValues,
+                    columnsToInclude);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return searchResult;
+    }
+
 }

@@ -1,9 +1,7 @@
 package com.schawk.productmaster.feed.dao.impl;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-
-import javax.persistence.Basic;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -252,5 +250,60 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 			String colorNumber) throws Exception {
 		return null;
 	}
+
+    /**
+         * This is a refined search applicable only to specified fields and returns the required columns from json
+         */
+    @Override
+    public List<String> searchProducts(String columnName, String[] columnValues,
+            String[] columnsToInclude) throws Exception {
+        LOG.debug("Search for multiple style numbers and display specified columns");
+        Query query = new Query();
+        query.addCriteria(Criteria.where(columnName).in(columnValues));
+
+        if (columnsToInclude != null) {
+            for (String FieldName : columnsToInclude) {
+                query.fields().include(FieldName);
+            }
+        }
+
+        LOG.debug("Query : " + query);
+        mongoTemplate = springMongoConfigService.getMongoTemplate();
+        List<String> searchResult = mongoTemplate.find(query, String.class, COLLECTION_NAME);
+        return searchResult;
+    }
+
+    @Override
+    public String searchFeedByStyleAndColor(String styleNumber, String colorNumber)
+            throws Exception {
+        LOG.debug("Search for style numbers and color");
+        mongoTemplate = springMongoConfigService.getMongoTemplate();
+        Query query = new Query();
+        query.addCriteria(Criteria.where(PRODUCT_STYLE).is(styleNumber)
+                .and("colors.color.colorCode").is(colorNumber));
+        query.fields().include("catagory").include("styleNumber").include("gender")
+                .include("productName").include("productType").include("colors.$");
+        LOG.debug("Query : " + query);
+        String searchResult = mongoTemplate.findOne(query, String.class, COLLECTION_NAME);
+        return searchResult;
+    }
+
+    @Override
+    public String searchFeedByStyle(String styleNumber, String[] field) throws Exception {
+        LOG.debug("Search for style numbers and color");
+        mongoTemplate = springMongoConfigService.getMongoTemplate();
+        Query query = new Query();
+        query.addCriteria(Criteria.where(PRODUCT_STYLE).is(styleNumber));
+
+        if (field != null) {
+            System.out.println(Arrays.asList(field));
+            for (String key : field) {
+                query.fields().include(key);
+            }
+        }
+        LOG.debug("Query : " + query);
+        String searchResult = mongoTemplate.findOne(query, String.class, COLLECTION_NAME);
+        return searchResult;
+    }
 
 }
