@@ -14,6 +14,8 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import com.mongodb.MongoException;
+
 /**
  * Controller advice to translate the server side exceptions to client-friendly json structures.
  */
@@ -66,6 +68,22 @@ public class ExceptionTranslator {
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     public ErrorDTO processMethodNotSupportedException(HttpRequestMethodNotSupportedException exception) {
         return new ErrorDTO(ErrorConstants.ERR_METHOD_NOT_SUPPORTED, exception.getMessage());
+    }
+    
+    
+    @ExceptionHandler(CustomMongoException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public String duplicateKeyException(CustomMongoException exception) {
+        String errorMessage;
+        
+        if(exception.code==11000){
+            errorMessage ="Style Record already exists for "+exception.styleNumber;
+        }
+        else
+            errorMessage =  "Exception in Mongo operation"+exception.getMessage();
+        return errorMessage;
+       
     }
 
     @ExceptionHandler(Exception.class)

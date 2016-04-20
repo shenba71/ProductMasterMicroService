@@ -8,11 +8,4 @@ public interface ProductMasterSearchService {
 
     public List<String> searchProductDetailsbyStyles(String[] styleNumbers);
 
-    public String searchProductUsingStyleAndColor(String styleNumber, String colorNumber);
-
-    public String searchProductUsingStyle(String styleNumber, String[] field);
-
-    public List<String> searchProducts(String columnName, String[] columnValues,
-            String[] columnsToInclude);
-
 }
