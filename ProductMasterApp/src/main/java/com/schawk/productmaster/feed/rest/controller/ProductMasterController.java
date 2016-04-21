@@ -1,7 +1,6 @@
 package com.schawk.productmaster.feed.rest.controller;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -194,7 +193,7 @@ public class ProductMasterController {
      * @return
      */
     @RequestMapping(value = "/styles", method = RequestMethod.GET)
-    public List<String> searchProducts(
+    public String searchProducts(
             @RequestParam(value = "q", required = false) String globalSearchFields,
             @RequestParam(value = "include", required = false) String fieldsToInclude) {
         LOG.debug(
@@ -217,29 +216,5 @@ public class ProductMasterController {
         return productMasterSearchservice.searchProducts(columnName, columnValues,
                 columnsToInclude);
     }
-
-    /* @RequestMapping(value = "/styles", method = RequestMethod.POST)
-    public String searchProducts(@RequestBody String styleNumbers) {
-        LOG.debug("Search Multiple Styles...");
-        String response = null;
-        List<String> searchResults = productMasterSearchservice
-                .searchProductDetailsbyStyles(styleNumbers.split(","));
-        if (CollectionUtils.isEmpty(searchResults)) {
-            response = "Styles Not Found";
-    
-        } else {
-            response = searchResults.toString();
-        }
-    
-        return response;
-    }*/
-
-    /*private Map getRequestParametersMap(Map requestMap){
-    	
-    	Map<String,String> updatedMap = new HashMap<String, String>();
-    	Set<String> keySet = requestMap.keySet();
-    	for (String object : keySet) {
-    		updatedMap.put(", (String) valuMap.get(object));
-    	}*/
 
 }

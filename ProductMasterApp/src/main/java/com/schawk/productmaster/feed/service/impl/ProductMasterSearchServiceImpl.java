@@ -73,9 +73,9 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
      * This is a refined search applicable only to specified fields
      */
     @Override
-    public List<String> searchProducts(String columnName, String[] columnValues,
+    public String searchProducts(String columnName, String[] columnValues,
             String[] columnsToInclude) {
-        List<String> searchResult = null;
+        String searchResult = null;
         String colorCodePrefix = "colors.color.";
         try {
             if (columnName.equalsIgnoreCase("colorCode")
@@ -89,5 +89,4 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
         }
         return searchResult;
     }
-
 }

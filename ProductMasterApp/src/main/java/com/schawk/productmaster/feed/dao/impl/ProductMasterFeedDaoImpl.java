@@ -3,6 +3,7 @@ package com.schawk.productmaster.feed.dao.impl;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -69,9 +70,8 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
                 // get a bulkWriteRequestBuilder by issuing find on the
                 // ProductStyle and Product color
 
-                BulkWriteRequestBuilder bulkWriteRequestBuilder = bulkWriteOperation
-                        .find(new BasicDBObject("Product style", product).append("Product color",
-                                color));
+                BulkWriteRequestBuilder bulkWriteRequestBuilder = bulkWriteOperation.find(
+                        new BasicDBObject("Product style", product).append("Product color", color));
 
                 // get hold of upsert operation from bulkWriteRequestBuilder
 
@@ -130,80 +130,86 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
         List<String> searchResult = mongoTemplate.find(query, String.class, COLLECTION_NAME);
         return searchResult;
     }
-    
+
     @Override
-    public String saveProductMetaData(String productMetaData) throws Exception{
-    		JSONObject productJson = new JSONObject(productMetaData);
-    		System.out.println(productJson);
-    		String styleNumber = productJson.getString("styleNumber");
-    		System.out.println(styleNumber);
-    	 mongoTemplate = springMongoConfigService.getMongoTemplate();
-         DBCollection collection = mongoTemplate.getDb().getCollection(COLLECTION_NAME);
-         DBObject obj = (DBObject) JSON.parse(productMetaData);
-         BasicDBObject styleObject = new BasicDBObject("$set",obj);
-         WriteResult res = collection.update(new BasicDBObject("styleNumber", styleNumber), styleObject, true, false);
-         return res.toString();
-         
+    public String saveProductMetaData(String productMetaData) throws Exception {
+        JSONObject productJson = new JSONObject(productMetaData);
+        System.out.println(productJson);
+        String styleNumber = productJson.getString("styleNumber");
+        System.out.println(styleNumber);
+        mongoTemplate = springMongoConfigService.getMongoTemplate();
+        DBCollection collection = mongoTemplate.getDb().getCollection(COLLECTION_NAME);
+        DBObject obj = (DBObject) JSON.parse(productMetaData);
+        BasicDBObject styleObject = new BasicDBObject("$set", obj);
+        WriteResult res = collection.update(new BasicDBObject("styleNumber", styleNumber),
+                styleObject, true, false);
+        return res.toString();
+
     }
-    
+
     @Override
-    public String saveColorMetaData(String colorMetaData,String styleNumber) throws Exception{
-    	String response = null;
-    	 mongoTemplate = springMongoConfigService.getMongoTemplate();
-         DBCollection collection = mongoTemplate.getDb().getCollection(COLLECTION_NAME);
-         JSONObject productJson = new JSONObject(colorMetaData);
- 		String colorNumber = productJson.getString("colorCode");
- 		
-         DBObject obj = (DBObject) JSON.parse(colorMetaData);
-         BasicDBObject colorMetaDataObject = new BasicDBObject("color",obj);
-         BasicDBObject styleObject = new BasicDBObject("styleNumber", styleNumber);
-         BasicDBObject colorObject = new BasicDBObject("colors", colorMetaDataObject);
-         BasicDBObject object = new BasicDBObject();
-         object.append("$addToSet",colorObject ).append("$setOnInsert",styleObject);
-         if(searchColorRecord(colorNumber,styleNumber).equalsIgnoreCase("NO COLOR RECORDS")){
-         WriteResult res = collection.update(styleObject, object, true, false);
-         response = res.toString();
-         }
-         else {
-        	 response = "Record already exists";
-         }
-		 return response;    	
+    public String saveColorMetaData(String colorMetaData, String styleNumber) throws Exception {
+        String response = null;
+        mongoTemplate = springMongoConfigService.getMongoTemplate();
+        DBCollection collection = mongoTemplate.getDb().getCollection(COLLECTION_NAME);
+        JSONObject productJson = new JSONObject(colorMetaData);
+        String colorNumber = productJson.getString("colorCode");
+
+        DBObject obj = (DBObject) JSON.parse(colorMetaData);
+        BasicDBObject colorMetaDataObject = new BasicDBObject("color", obj);
+        BasicDBObject styleObject = new BasicDBObject("styleNumber", styleNumber);
+        BasicDBObject colorObject = new BasicDBObject("colors", colorMetaDataObject);
+        BasicDBObject object = new BasicDBObject();
+        object.append("$addToSet", colorObject).append("$setOnInsert", styleObject);
+        if (searchColorRecord(colorNumber, styleNumber).equalsIgnoreCase("NO COLOR RECORDS")) {
+            WriteResult res = collection.update(styleObject, object, true, false);
+            response = res.toString();
+        } else {
+            response = "Record already exists";
+        }
+        return response;
     }
-    
+
     @Override
-    public String saveSizeMetaData(String sizeMetaData, String styleNumber, String colorNumber)throws Exception{
-    	mongoTemplate = springMongoConfigService.getMongoTemplate();
+    public String saveSizeMetaData(String sizeMetaData, String styleNumber, String colorNumber)
+            throws Exception {
+        mongoTemplate = springMongoConfigService.getMongoTemplate();
         DBCollection collection = mongoTemplate.getDb().getCollection(COLLECTION_NAME);
         DBObject obj = (DBObject) JSON.parse(sizeMetaData);
-        BasicDBObject sizeMetaDataObject = new BasicDBObject("size",obj);
-        BasicDBObject queryObject = new BasicDBObject("styleNumber", styleNumber).append("colors.color.colorCode", colorNumber);
+        BasicDBObject sizeMetaDataObject = new BasicDBObject("size", obj);
+        BasicDBObject queryObject = new BasicDBObject("styleNumber", styleNumber)
+                .append("colors.color.colorCode", colorNumber);
         BasicDBObject sizeObject = new BasicDBObject("colors.$.color.sizes", sizeMetaDataObject);
-        if(searchStyleRecord(styleNumber).equalsIgnoreCase("NO STYLE RECORDS") || searchColorRecord(colorNumber,styleNumber).equalsIgnoreCase("NO COLOR RECORDS") ){
-        	BasicDBObject colorObject = new BasicDBObject("colorCode",colorNumber);
-    		saveColorMetaData(colorObject.toString(),styleNumber);
+        if (searchStyleRecord(styleNumber).equalsIgnoreCase("NO STYLE RECORDS")
+                || searchColorRecord(colorNumber, styleNumber)
+                        .equalsIgnoreCase("NO COLOR RECORDS")) {
+            BasicDBObject colorObject = new BasicDBObject("colorCode", colorNumber);
+            saveColorMetaData(colorObject.toString(), styleNumber);
         }
         BasicDBObject object = new BasicDBObject();
         object.append("$addToSet", sizeObject);
+
         WriteResult res = collection.update(queryObject, object, true, false);
-		return res.toString();            
-        
-        
+        return res.toString();
+
     }
-    
+
     @Override
-    public String updateColorMetaData(String colorMetaData, String styleNumber, String colorNumber)throws Exception{
-    	mongoTemplate = springMongoConfigService.getMongoTemplate();
+    public String updateColorMetaData(String colorMetaData, String styleNumber, String colorNumber)
+            throws Exception {
+        mongoTemplate = springMongoConfigService.getMongoTemplate();
         DBCollection collection = mongoTemplate.getDb().getCollection(COLLECTION_NAME);
         DBObject obj = (DBObject) JSON.parse(colorMetaData);
-        System.out.println(colorNumber+"------------"+styleNumber);
-        BasicDBObject queryObject = new BasicDBObject("styleNumber", styleNumber).append("colors.color.colorCode", colorNumber);
-       // BasicDBObject updateObject = new BasicDBObject("colors.$.color",obj);
-        BasicDBObject colorObject = new BasicDBObject("$set",obj);
+        System.out.println(colorNumber + "------------" + styleNumber);
+        BasicDBObject queryObject = new BasicDBObject("styleNumber", styleNumber)
+                .append("colors.color.colorCode", colorNumber);
+        // BasicDBObject updateObject = new BasicDBObject("colors.$.color",obj);
+        BasicDBObject colorObject = new BasicDBObject("$set", obj);
         WriteResult res = collection.update(queryObject, colorObject, true, false);
-		return res.toString();    
-    	
+        return res.toString();
+
     }
-    
+
     /*private BasicDBObject createProductDetailJson(String styleNumber,String colorNumber){
     	BasicDBObject productDetail = new BasicDBObject("styleNumber",styleNumber);
     	BasicDBObject colorMetaDataObject = new BasicDBObject("colorCode",colorNumber);
@@ -212,52 +218,59 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
     	colorList.add(obj);
     	//BasicDBObject colorObject = new BasicDBObject("colors", colorList);
         productDetail.append("colors", colorList);
-		return productDetail;
+    	return productDetail;
     }*/
     
-    private String searchStyleRecord(String styleNumber) throws Exception{
-    	Query query = new Query();
-    	String results = null;
-    	query.addCriteria(Criteria.where(PRODUCT_STYLE).is(styleNumber));
-    	mongoTemplate = springMongoConfigService.getMongoTemplate();
-    	List<String> searchResults = mongoTemplate.find(query, String.class, COLLECTION_NAME);
+    private String searchStyleRecord(String styleNumber) throws Exception {
+        Query query = new Query();
+        String results = null;
+        query.addCriteria(Criteria.where(PRODUCT_STYLE).is(styleNumber));
+        mongoTemplate = springMongoConfigService.getMongoTemplate();
+        List<String> searchResults = mongoTemplate.find(query, String.class, COLLECTION_NAME);
         if (CollectionUtils.isEmpty(searchResults) == false) {
             results = searchResults.toString();
         } else {
             results = "NO STYLE RECORDS";
         }
-    	
+
         return results;
     }
-    
-    private String searchColorRecord(String colorNumber,String styleNumber) throws Exception{
-    	Query query = new Query();
-    	String results = null;
-    	query.addCriteria(Criteria.where(PRODUCT_STYLE).is(styleNumber).and(PRODUCT_COLOR).is(colorNumber));
-    	mongoTemplate = springMongoConfigService.getMongoTemplate();
-    	List<String> searchResults = mongoTemplate.find(query, String.class, COLLECTION_NAME);
+
+    private String searchColorRecord(String colorNumber, String styleNumber) throws Exception {
+        Query query = new Query();
+        String results = null;
+        query.addCriteria(
+                Criteria.where(PRODUCT_STYLE).is(styleNumber).and(PRODUCT_COLOR).is(colorNumber));
+        mongoTemplate = springMongoConfigService.getMongoTemplate();
+        List<String> searchResults = mongoTemplate.find(query, String.class, COLLECTION_NAME);
         if (CollectionUtils.isEmpty(searchResults) == false) {
             results = searchResults.toString();
         } else {
             results = "NO COLOR RECORDS";
         }
-    	
+
         return results;
     }
 
-	@Override
-	public String updateSizeMetaData(String colorMetaData, String styleNumber,
-			String colorNumber) throws Exception {
-		return null;
-	}
+    @Override
+    public String updateSizeMetaData(String colorMetaData, String styleNumber, String colorNumber)
+            throws Exception {
+        return null;
+    }
 
     /**
-         * This is a refined search applicable only to specified fields and returns the required columns from json
-         */
+    * This is a refined search applicable only to specified fields and returns the required columns from json
+    * @param columnName
+    * @param columnValues
+    * @param columnsToInclude
+    * @return
+    * @throws Exception
+    */
     @Override
-    public List<String> searchProducts(String columnName, String[] columnValues,
+    public String searchProducts(String columnName, String[] columnValues,
             String[] columnsToInclude) throws Exception {
         LOG.debug("Search for multiple style numbers and display specified columns");
+        String results = null;
         Query query = new Query();
         query.addCriteria(Criteria.where(columnName).in(columnValues));
 
@@ -266,32 +279,61 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
                 query.fields().include(FieldName);
             }
         }
-
         LOG.debug("Query : " + query);
         mongoTemplate = springMongoConfigService.getMongoTemplate();
-        List<String> searchResult = mongoTemplate.find(query, String.class, COLLECTION_NAME);
-        return searchResult;
+        List<String> searchResults = mongoTemplate.find(query, String.class, COLLECTION_NAME);
+
+        if (CollectionUtils.isEmpty(searchResults) == false) {
+            results = searchResults.toString();
+        } else {
+            results = "NO RECORDS FOUND";
+        }
+        return results;
     }
 
+    /**
+     * Get product metadata based on style and color
+     * @param styleNumber
+     * @param colorNumber
+     * @return
+     * @throws Exception
+     */
     @Override
     public String searchFeedByStyleAndColor(String styleNumber, String colorNumber)
             throws Exception {
         LOG.debug("Search for style numbers and color");
+        String results = null;
         mongoTemplate = springMongoConfigService.getMongoTemplate();
         Query query = new Query();
-        query.addCriteria(Criteria.where(PRODUCT_STYLE).is(styleNumber)
-                .and("colors.color.colorCode").is(colorNumber));
+        query.addCriteria(
+                Criteria.where(PRODUCT_STYLE).is(styleNumber).and(PRODUCT_COLOR).is(colorNumber));
+
         query.fields().include("catagory").include("styleNumber").include("gender")
                 .include("productName").include("productType").include("colors.$");
+        // uncomment to get color without sizes and comment the above line
+        // query.fields().exclude("colors.color.sizes");
         LOG.debug("Query : " + query);
         String searchResult = mongoTemplate.findOne(query, String.class, COLLECTION_NAME);
-        return searchResult;
+        if (StringUtils.isEmpty(searchResult) == false) {
+            results = searchResult.toString();
+        } else {
+            results = "NO RECORDS FOUND FOR GIVEN STYLE AND COLOR";
+        }
+        return results;
     }
 
+    /**
+     * Retrieve product metadata based on style and include the specified columns
+     * @param styleNumber
+     * @param field
+     * @return
+     * @throws Exception
+     */
     @Override
     public String searchFeedByStyle(String styleNumber, String[] field) throws Exception {
         LOG.debug("Search for style numbers and color");
         mongoTemplate = springMongoConfigService.getMongoTemplate();
+        String results = null;
         Query query = new Query();
         query.addCriteria(Criteria.where(PRODUCT_STYLE).is(styleNumber));
 
@@ -303,7 +345,11 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
         }
         LOG.debug("Query : " + query);
         String searchResult = mongoTemplate.findOne(query, String.class, COLLECTION_NAME);
-        return searchResult;
+        if (StringUtils.isEmpty(searchResult) == false) {
+            results = searchResult.toString();
+        } else {
+            results = "NO RECORDS FOUND FOR GIVEN STYLE";
+        }
+        return results;
     }
-
 }
