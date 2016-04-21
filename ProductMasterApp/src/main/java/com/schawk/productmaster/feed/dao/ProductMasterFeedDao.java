@@ -30,7 +30,9 @@ public interface ProductMasterFeedDao {
 
     public String searchFeedByStyle(String styleNumber, String[] field) throws Exception;
 
-    public List<String> searchProducts(String columnName, String[] columnValues,
+    public String searchProducts(String columnName, String[] columnValues,
             String[] columnsToInclude) throws Exception;
+
+	public String globalSearch(String searchField) throws Exception;
 
 }

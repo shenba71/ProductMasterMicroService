@@ -1,5 +1,6 @@
 package com.schawk.productmaster.feed.dao.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,16 +13,23 @@ import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.TextCriteria;
+import org.springframework.data.mongodb.core.query.TextQuery;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BulkUpdateRequestBuilder;
 import com.mongodb.BulkWriteOperation;
 import com.mongodb.BulkWriteRequestBuilder;
 import com.mongodb.BulkWriteResult;
+import com.mongodb.CommandResult;
+import com.mongodb.DB;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.QueryBuilder;
 import com.mongodb.WriteResult;
 import com.mongodb.util.JSON;
 import com.schawk.productmaster.config.service.SpringMongoConfigService;
@@ -255,7 +263,7 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
          * This is a refined search applicable only to specified fields and returns the required columns from json
          */
     @Override
-    public List<String> searchProducts(String columnName, String[] columnValues,
+    public String searchProducts(String columnName, String[] columnValues,
             String[] columnsToInclude) throws Exception {
         LOG.debug("Search for multiple style numbers and display specified columns");
         Query query = new Query();
@@ -270,8 +278,37 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
         LOG.debug("Query : " + query);
         mongoTemplate = springMongoConfigService.getMongoTemplate();
         List<String> searchResult = mongoTemplate.find(query, String.class, COLLECTION_NAME);
-        return searchResult;
+        return searchResult.toString();
     }
+    
+   /**
+    * This is a global search applicable only to specified fields which are given in text indexes
+    * @param searchField
+    * @throws Exception
+    */
+	@Override
+	public String globalSearch(String searchField) throws Exception {
+	    LOG.debug("Inside globalSearch method");   
+	    List<String> resultList = new ArrayList<String>();
+	    mongoTemplate = springMongoConfigService.getMongoTemplate();
+	    DBCollection collection = mongoTemplate.getDb().getCollection(COLLECTION_NAME);
+	    DBObject searchQuery = QueryBuilder.start().text(searchField).get();
+	    DBCursor cursor = collection.find(searchQuery);
+	    
+	    while(cursor.hasNext()){
+		    String resultString = cursor.next().toString();
+		    LOG.debug("Results :" + resultString);
+		    resultList.add(resultString);
+		    LOG.debug("Results size"+resultList.size());
+	    }
+	    
+	    if(!resultList.isEmpty()) {
+	    	return resultList.toString();
+	    } else {
+	    	LOG.debug("No Records Found");
+	    	return "No Records Found";
+	    }
+	}
 
     @Override
     public String searchFeedByStyleAndColor(String styleNumber, String colorNumber)

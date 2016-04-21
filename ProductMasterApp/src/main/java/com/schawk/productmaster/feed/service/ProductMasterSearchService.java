@@ -12,7 +12,9 @@ public interface ProductMasterSearchService {
 
     public String searchProductUsingStyle(String styleNumber, String[] field);
 
-    public List<String> searchProducts(String columnName, String[] columnValues,
+    public String searchProducts(String columnName, String[] columnValues,
             String[] columnsToInclude);
+
+	public String globalSearch(String searchField) throws Exception;
 
 }

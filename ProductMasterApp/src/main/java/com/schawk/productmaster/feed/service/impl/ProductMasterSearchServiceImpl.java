@@ -11,6 +11,8 @@ import com.schawk.productmaster.feed.dao.ProductMasterFeedDao;
 import com.schawk.productmaster.feed.dao.impl.ProductMasterFeedDaoImpl;
 import com.schawk.productmaster.feed.service.ProductMasterSearchService;
 
+import antlr.StringUtils;
+
 @Service
 public class ProductMasterSearchServiceImpl implements ProductMasterSearchService {
 
@@ -73,9 +75,9 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
      * This is a refined search applicable only to specified fields
      */
     @Override
-    public List<String> searchProducts(String columnName, String[] columnValues,
+    public String searchProducts(String columnName, String[] columnValues,
             String[] columnsToInclude) {
-        List<String> searchResult = null;
+        String searchResult = null;
         String colorCodePrefix = "colors.color.";
         try {
             if (columnName.equalsIgnoreCase("colorCode")
@@ -90,4 +92,19 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
         return searchResult;
     }
 
+    /**
+     * This is a global search applicable only to specified fields which are given in text indexes
+     * @param searchField
+     * @throws Exception
+     */
+    @Override
+    public String globalSearch(String searchField) throws Exception {
+    	
+    	if(searchField != null && searchField != ""){
+    		return productMasterFeedDao.globalSearch(searchField);
+    	} else {
+    		LOG.debug("Search field is empty");
+    		return "Please enter a text to search";
+    	}       
+    }
 }
