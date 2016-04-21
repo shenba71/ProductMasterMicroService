@@ -1,7 +1,9 @@
 package com.schawk.productmaster.feed.dao.impl;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -295,6 +297,7 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 
     }
 
+	@Override
     public int getIndexForSize(String styleNumber, String colorCode, String sizeCode)
             throws Exception {
         String result = searchColorRecord(colorCode, styleNumber);
@@ -319,5 +322,101 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
         // TODO Auto-generated method stub
         return null;
     }
+    
+    /**
+     * This is a refined search applicable only to specified fields and returns the required columns from json
+     * @param columnName
+     * @param columnValues
+     * @param columnsToInclude
+     * @return
+     * @throws Exception
+     */
+     @Override
+     public String searchProducts(String columnName, String[] columnValues,
+             String[] columnsToInclude) throws Exception {
+         LOG.debug("Search for multiple style numbers and display specified columns");
+         String results = null;
+         Query query = new Query();
+         query.addCriteria(Criteria.where(columnName).in(columnValues));
+
+         if (columnsToInclude != null) {
+             for (String FieldName : columnsToInclude) {
+                 query.fields().include(FieldName);
+             }
+         }
+         LOG.debug("Query : " + query);
+         mongoTemplate = springMongoConfigService.getMongoTemplate();
+         List<String> searchResults = mongoTemplate.find(query, String.class, COLLECTION_NAME);
+
+         if (CollectionUtils.isEmpty(searchResults) == false) {
+             results = searchResults.toString();
+         } else {
+             results = "NO RECORDS FOUND";
+         }
+         return results;
+     }
+
+     /**
+      * Get product metadata based on style and color
+      * @param styleNumber
+      * @param colorNumber
+      * @return
+      * @throws Exception
+      */
+     @Override
+     public String searchFeedByStyleAndColor(String styleNumber, String colorNumber)
+             throws Exception {
+         LOG.debug("Search for style numbers and color");
+         String results = null;
+         mongoTemplate = springMongoConfigService.getMongoTemplate();
+         Query query = new Query();
+         query.addCriteria(
+                 Criteria.where(PRODUCT_STYLE).is(styleNumber).and(PRODUCT_COLOR).is(colorNumber));
+
+         query.fields().include("catagory").include("styleNumber").include("gender")
+                 .include("productName").include("productType").include("colors.$");
+         // uncomment to get color without sizes and comment the above line
+         // query.fields().exclude("colors.color.sizes");
+         LOG.debug("Query : " + query);
+         String searchResult = mongoTemplate.findOne(query, String.class, COLLECTION_NAME);
+         if (StringUtils.isEmpty(searchResult) == false) {
+             results = searchResult.toString();
+         } else {
+             results = "NO RECORDS FOUND FOR GIVEN STYLE AND COLOR";
+         }
+         return results;
+     }
+
+     /**
+      * Retrieve product metadata based on style and include the specified columns
+      * @param styleNumber
+      * @param field
+      * @return
+      * @throws Exception
+      */
+     @Override
+     public String searchFeedByStyle(String styleNumber, String[] field) throws Exception {
+         LOG.debug("Search for style numbers and color");
+         mongoTemplate = springMongoConfigService.getMongoTemplate();
+         String results = null;
+         Query query = new Query();
+         query.addCriteria(Criteria.where(PRODUCT_STYLE).is(styleNumber));
+
+         if (field != null) {
+             System.out.println(Arrays.asList(field));
+             for (String key : field) {
+                 query.fields().include(key);
+             }
+         }
+         LOG.debug("Query : " + query);
+         String searchResult = mongoTemplate.findOne(query, String.class, COLLECTION_NAME);
+         if (StringUtils.isEmpty(searchResult) == false) {
+             results = searchResult.toString();
+         } else {
+             results = "NO RECORDS FOUND FOR GIVEN STYLE";
+         }
+         return results;
+     }
+
 
 }

@@ -3,6 +3,7 @@ package com.schawk.productmaster.feed.rest.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -306,5 +307,48 @@ public class ProductMasterController {
      * Set<String> keySet = requestMap.keySet(); for (String object : keySet) {
      * updatedMap.put(", (String) valuMap.get(object)); }
      */
+    @RequestMapping(value = "/styles/{styleNumber}", method = RequestMethod.GET)
+    public String searchProductUsingStyle(@PathVariable("styleNumber") String styleNumber,
+            @RequestParam(value = "include", required = false) String fieldsToDisplay) {
+        LOG.debug("StyleNumber : " + styleNumber + " Fields to include : " + fieldsToDisplay);
+
+        String[] fieldsToInclude = null;
+        if (StringUtils.isNotEmpty(fieldsToDisplay)) {
+            fieldsToInclude = fieldsToDisplay.split(",");
+        }
+        return productMasterSearchservice.searchProductUsingStyle(styleNumber, fieldsToInclude);
+    }
+
+    /**
+     * This is a refined search applicable only to specified fields
+     * Example Input : /styles?q={styleNumber=12345,12346}&include=styleNumber,colors
+     * @param globalSearchFields
+     * @param fieldsToInclude
+     * @return
+     */
+    @RequestMapping(value = "/styles", method = RequestMethod.GET)
+    public String searchProducts(
+            @RequestParam(value = "q", required = false) String globalSearchFields,
+            @RequestParam(value = "include", required = false) String fieldsToInclude) {
+        LOG.debug(
+                "Query field : " + globalSearchFields + " Fields to include : " + fieldsToInclude);
+
+        globalSearchFields = globalSearchFields.replaceAll("(\\{|\\})", "");
+        String[] searchFields = globalSearchFields.split("=");
+
+        String columnName = searchFields[0];
+
+        String[] columnValues = null;
+        if (StringUtils.isNotEmpty(searchFields[1])) {
+            columnValues = searchFields[1].split(",");
+        }
+
+        String[] columnsToInclude = null;
+        if (StringUtils.isNotEmpty(fieldsToInclude)) {
+            columnsToInclude = fieldsToInclude.split(",");
+        }
+        return productMasterSearchservice.searchProducts(columnName, columnValues,
+                columnsToInclude);
+    }
 
 }

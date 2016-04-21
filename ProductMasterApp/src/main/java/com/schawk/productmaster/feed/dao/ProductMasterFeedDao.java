@@ -25,9 +25,14 @@ public interface ProductMasterFeedDao {
     public String updateSizeMetaData(String sizeMetaData, String styleNumber, String colorNumber,
             String sizeCode) throws Exception;
 
+    public String searchFeedByStyleAndColor(String styleNumber, String colorNumber) throws Exception;
     public int getIndexForSize(String styleNumber, String colorCode, String sizeCode)
             throws Exception;
 
+    public String searchFeedByStyle(String styleNumber, String[] field) throws Exception;
     public String updateProductMetaDataStyle(String productMetaData) throws Exception;
+
+    public String searchProducts(String columnName, String[] columnValues,
+            String[] columnsToInclude) throws Exception;
 
 }
