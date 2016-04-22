@@ -351,30 +351,37 @@ public class ProductMasterController {
 			@RequestParam(value = "q", required = false) String globalSearchFields,
 			@RequestParam(value = "include", required = false) String fieldsToInclude)
 			throws Exception {
+		String response = null;
 		LOG.debug("Query field : " + globalSearchFields
 				+ " Fields to include : " + fieldsToInclude);
+		if (StringUtils.isNotBlank(globalSearchFields)) {
+			if (globalSearchFields.startsWith("{")) {
+				globalSearchFields = globalSearchFields.replaceAll("(\\{|\\})",
+						"");
+				String[] searchFields = globalSearchFields.split("=");
 
-		if (globalSearchFields.startsWith("{")) {
-			globalSearchFields = globalSearchFields.replaceAll("(\\{|\\})", "");
-			String[] searchFields = globalSearchFields.split("=");
+				String columnName = searchFields[0];
 
-			String columnName = searchFields[0];
+				String[] columnValues = null;
+				if (StringUtils.isNotEmpty(searchFields[1])) {
+					columnValues = searchFields[1].split(",");
+				}
 
-			String[] columnValues = null;
-			if (StringUtils.isNotEmpty(searchFields[1])) {
-				columnValues = searchFields[1].split(",");
+				String[] columnsToInclude = null;
+				if (StringUtils.isNotEmpty(fieldsToInclude)) {
+					columnsToInclude = fieldsToInclude.split(",");
+				}
+				response = productMasterSearchservice.searchProducts(
+						columnName, columnValues, columnsToInclude);
+			} else {
+				// global search is case insensitive
+				response = productMasterSearchservice
+						.globalSearch(globalSearchFields);
 			}
-
-			String[] columnsToInclude = null;
-			if (StringUtils.isNotEmpty(fieldsToInclude)) {
-				columnsToInclude = fieldsToInclude.split(",");
-			}
-			return productMasterSearchservice.searchProducts(columnName,
-					columnValues, columnsToInclude);
 		} else {
-			// global search is case insensitive
-			return productMasterSearchservice.globalSearch(globalSearchFields);
+			response = "Search fields are empty";
 		}
+		return response;
 
 	}
 
