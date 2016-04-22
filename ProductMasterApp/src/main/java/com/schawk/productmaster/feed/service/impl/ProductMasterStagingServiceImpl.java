@@ -214,7 +214,7 @@ public class ProductMasterStagingServiceImpl implements ProductMasterStagingServ
         String response = null;
         String updatedColorData = null;
         int pos = 0;
-        if (productMasterFeedDao.searchFeedByStyleAndColor(styleNumber, colorNumber)
+        if (productMasterFeedDao.findProductByStyleAndColor(styleNumber, colorNumber)
                 .equalsIgnoreCase("NO RECORDS FOUND FOR GIVEN STYLE AND COLOR")) {
             valueMap.put("colorCode", colorNumber);
             updatedColorData = convertMapToJson(valueMap);

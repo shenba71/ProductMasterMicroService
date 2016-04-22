@@ -126,7 +126,7 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
             DBCollection collection = mongoTemplate.getDb().getCollection(COLLECTION_NAME);
             DBObject styleObject = (DBObject) JSON.parse(productMetaData);
             collection.insert(styleObject);
-            response = searchFeedByStyle(styleNumber, null);
+            response = findProductByStyle(styleNumber, null);
         } catch (MongoException mongoException) {
             response = "Exception while Inserting";
             throw new CustomMongoException(styleNumber, mongoException.getCode(),
@@ -155,7 +155,7 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
         DBObject productObject = (DBObject) JSON.parse(productMetaData);
         BasicDBObject styleObject = new BasicDBObject("$set", productObject);
         collection.update(new BasicDBObject("styleNumber", styleNumber), styleObject, true, false);
-        return searchFeedByStyle(styleNumber, null);
+        return findProductByStyle(styleNumber, null);
 
     }
 
@@ -182,10 +182,10 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
         BasicDBObject objectToInsert = new BasicDBObject();
         objectToInsert.append("$addToSet", colorObject).append("$setOnInsert", styleObject);
         // insertion will happen only if record not present for given color
-        if (searchFeedByStyleAndColor(styleNumber, colorNumber)
+        if (findProductByStyleAndColor(styleNumber, colorNumber)
                 .equalsIgnoreCase("NO RECORDS FOUND FOR GIVEN STYLE AND COLOR")) {
             collection.update(styleObject, objectToInsert, true, false);
-            response = searchFeedByStyle(styleNumber, null);
+            response = findProductByStyle(styleNumber, null);
         } else {
             response = "Record already exists";
         }
@@ -215,9 +215,9 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
         BasicDBObject sizeObject = new BasicDBObject("colors.$.color.sizes", sizeMetaDataObject);
         // If style and color record was not already present, then wil create
         // style and color record before inserting size metadata
-        if (searchFeedByStyle(styleNumber, null)
+        if (findProductByStyle(styleNumber, null)
                 .equalsIgnoreCase("NO RECORDS FOUND FOR GIVEN STYLE")
-                || searchFeedByStyleAndColor(styleNumber, colorNumber)
+                || findProductByStyleAndColor(styleNumber, colorNumber)
                         .equalsIgnoreCase("NO RECORDS FOUND FOR GIVEN STYLE AND COLOR")) {
             BasicDBObject colorObject = new BasicDBObject("colorCode", colorNumber);
             saveColorMetaData(colorObject.toString(), styleNumber);
@@ -228,7 +228,7 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
         if (searchSizeRecord(styleNumber, colorNumber, sizeCode)
                 .equalsIgnoreCase("NO SIZE RECORDS")) {
             collection.update(queryObject, object, true, false);
-            response = searchFeedByStyle(styleNumber, null);
+            response = findProductByStyle(styleNumber, null);
             ;
         } else {
             response = "SIZE RECORD ALREADY EXISTS";
@@ -257,7 +257,7 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
                 .append("colors.color.colorCode", colorNumber);
         BasicDBObject colorObject = new BasicDBObject("$set", obj);
         collection.update(queryObject, colorObject, true, false);
-        return searchFeedByStyle(styleNumber, null);
+        return findProductByStyle(styleNumber, null);
 
     }
 
@@ -316,9 +316,8 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
     @Override
     public int getIndexForSize(String styleNumber, String colorCode, String sizeCode)
             throws Exception {
-        String result = searchFeedByStyleAndColor(styleNumber, colorCode);
+        String result = findProductByStyleAndColor(styleNumber, colorCode);
         JSONObject productJson = new JSONObject(result);
-        System.out.println(productJson.toString());
         JSONArray sizeArray = productJson.getJSONArray("colors").getJSONObject(0)
                 .getJSONObject("color").getJSONArray("sizes");
         int position = 0;
@@ -344,9 +343,9 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
     * @throws Exception
     */
     @Override
-    public String searchProducts(String columnName, String[] columnValues,
+    public String findProductByFields(String columnName, String[] columnValues,
             String[] columnsToInclude) throws Exception {
-        LOG.debug("Search for multiple style numbers and display specified columns");
+        LOG.info("Search for multiple style numbers and display specified columns");
         String results = null;
         Query query = new Query();
         query.addCriteria(Criteria.where(columnName).in(columnValues));
@@ -378,9 +377,9 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
      * @throws Exception
      */
     @Override
-    public String searchFeedByStyleAndColor(String styleNumber, String colorNumber)
+    public String findProductByStyleAndColor(String styleNumber, String colorNumber)
             throws Exception {
-        LOG.debug("Search for style numbers and color");
+        LOG.info("Search for style numbers and color");
         String results = null;
         mongoTemplate = springMongoConfigService.getMongoTemplate();
         Query query = new Query();
@@ -413,8 +412,8 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
      * @throws Exception
      */
     @Override
-    public String searchFeedByStyle(String styleNumber, String[] field) throws Exception {
-        LOG.debug("Search for style numbers");
+    public String findProductByStyle(String styleNumber, String[] field) throws Exception {
+        LOG.info("Search for style numbers");
         mongoTemplate = springMongoConfigService.getMongoTemplate();
         String results = null;
         Query query = new Query();
@@ -446,7 +445,7 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
      */
     @Override
     public String globalSearch(String searchField) throws Exception {
-        LOG.debug("Inside globalSearch method");
+        LOG.info("Inside globalSearch method");
         List<String> resultList = new ArrayList<String>();
         mongoTemplate = springMongoConfigService.getMongoTemplate();
         DBCollection collection = mongoTemplate.getDb().getCollection(COLLECTION_NAME);
@@ -488,9 +487,9 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
     * @throws Exception
     */
     @Override
-    public String searchProductSizeByStyleColor(String styleNumber, String colorCode,
+    public String findProductByStyleColorAndSizes(String styleNumber, String colorCode,
             String sizeCode) throws Exception {
-        LOG.debug("Search for size by given style numbers, color and style");
+        LOG.info("Search for size by given style numbers, color and style");
         String results = null;
         String searchResult = null;
         mongoTemplate = springMongoConfigService.getMongoTemplate();
@@ -532,9 +531,9 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
      * @throws Exception
      */
     @Override
-    public String searchProductSizesByStyleColor(String styleNumber, String colorCode)
+    public String findProductByStyleColorAndSizes(String styleNumber, String colorCode)
             throws Exception {
-        LOG.debug("Search for all sizes by style numbers and color");
+        LOG.info("Search for all sizes by style numbers and color");
         String results = null;
         String searchResult = null;
         mongoTemplate = springMongoConfigService.getMongoTemplate();

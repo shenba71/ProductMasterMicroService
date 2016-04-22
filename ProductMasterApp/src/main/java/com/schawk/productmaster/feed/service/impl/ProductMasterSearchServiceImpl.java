@@ -25,10 +25,10 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
      * Search the product with the specified color
      */
     @Override
-    public String searchProductUsingStyleAndColor(String styleNumber, String colorCode) {
+    public String findProductByStyleAndColor(String styleNumber, String colorCode) {
         String searchResult = null;
         try {
-            searchResult = productMasterFeedDao.searchFeedByStyleAndColor(styleNumber, colorCode);
+            searchResult = productMasterFeedDao.findProductByStyleAndColor(styleNumber, colorCode);
         } catch (Exception e) {
             LOG.debug("Exception occurred while searching for product using style and color.");
             e.printStackTrace();
@@ -41,10 +41,10 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
      * should be included in the query results.
      */
     @Override
-    public String searchProductUsingStyle(String styleNumber, String[] field) {
+    public String findProductByStyle(String styleNumber, String[] field) {
         String searchResult = null;
         try {
-            searchResult = productMasterFeedDao.searchFeedByStyle(styleNumber, field);
+            searchResult = productMasterFeedDao.findProductByStyle(styleNumber, field);
         } catch (Exception e) {
             LOG.debug("Exception occurred while searching for product using style.");
             e.printStackTrace();
@@ -56,7 +56,7 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
      * This is a refined search applicable only to specified fields
      */
     @Override
-    public String searchProducts(String columnName, String[] columnValues,
+    public String findProductByFields(String columnName, String[] columnValues,
             String[] columnsToInclude) {
         String searchResult = null;
         String colorCodePrefix = "colors.color.";
@@ -68,7 +68,7 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
             } else if (columnName.equalsIgnoreCase("sizeCode")) {
                 columnName = sizeCodePrefix.concat(columnName);
             }
-            searchResult = productMasterFeedDao.searchProducts(columnName, columnValues,
+            searchResult = productMasterFeedDao.findProductByFields(columnName, columnValues,
                     columnsToInclude);
         } catch (Exception e) {
             LOG.debug("Exception occurred while searching for product.");
@@ -99,10 +99,10 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
     * Search the product size with the specified size
     */
     @Override
-    public String searchProductSizeByStyleColor(String styleNumber, String colorCode, String size) {
+    public String findProductByStyleColorAndSizes(String styleNumber, String colorCode, String size) {
         String searchResult = null;
         try {
-            searchResult = productMasterFeedDao.searchProductSizeByStyleColor(styleNumber,
+            searchResult = productMasterFeedDao.findProductByStyleColorAndSizes(styleNumber,
                     colorCode, size);
         } catch (Exception e) {
             LOG.debug("Exception occurred while searching for product size using style and color");
@@ -115,10 +115,10 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
     * Search all product sizes based on style and color
     */
     @Override
-    public String searchProductSizesByStyleColor(String styleNumber, String colorCode) {
+    public String findProductByStyleColorAndSizes(String styleNumber, String colorCode) {
         String searchResult = null;
         try {
-            searchResult = productMasterFeedDao.searchProductSizesByStyleColor(styleNumber,
+            searchResult = productMasterFeedDao.findProductByStyleColorAndSizes(styleNumber,
                     colorCode);
         } catch (Exception e) {
             LOG.debug(
