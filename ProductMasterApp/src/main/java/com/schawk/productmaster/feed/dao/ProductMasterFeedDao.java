@@ -34,5 +34,7 @@ public interface ProductMasterFeedDao {
 
     public String searchProducts(String columnName, String[] columnValues,
             String[] columnsToInclude) throws Exception;
+    
+    public String globalSearch(String searchField) throws Exception;
 
 }

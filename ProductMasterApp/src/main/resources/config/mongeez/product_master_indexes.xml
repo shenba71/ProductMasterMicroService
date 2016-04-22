@@ -2,6 +2,7 @@
     <changeSet changeId="ChangeSet-4" author="jhipster">
         <script>
             db.product_master.ensureIndex({"styleNumber" : 1, "colors.color.colorCode" : 1, "colors.color.sizes.size.sizeCode": 1}, { unique: true });
+			db.product_master.createIndex({ "styleNumber": "text","productType":"text","productName":"text","productDescription":"text","category":"text","colors.color.colorCode":"text","colors.color.sizes.size.sizeCode":"text" },{name: "TextIndex"}); 
         </script>
     </changeSet>
 </mongoChangeLog>

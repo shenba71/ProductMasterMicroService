@@ -1,5 +1,6 @@
 package com.schawk.productmaster.feed.dao.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,8 +22,10 @@ import com.mongodb.BulkWriteOperation;
 import com.mongodb.BulkWriteRequestBuilder;
 import com.mongodb.BulkWriteResult;
 import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
+import com.mongodb.QueryBuilder;
 import com.mongodb.WriteResult;
 import com.mongodb.util.JSON;
 import com.schawk.productmaster.config.service.SpringMongoConfigService;
@@ -417,6 +420,35 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
          }
          return results;
      }
+
+    /**
+     * This is a global search applicable only to specified fields which are given in text indexes
+     * @param searchField
+     * @throws Exception
+     */
+    @Override
+    public String globalSearch(String searchField) throws Exception {
+        LOG.debug("Inside globalSearch method");
+        List<String> resultList = new ArrayList<String>();
+        mongoTemplate = springMongoConfigService.getMongoTemplate();
+        DBCollection collection = mongoTemplate.getDb().getCollection(COLLECTION_NAME);
+        DBObject searchQuery = QueryBuilder.start().text(searchField).get();
+        DBCursor cursor = collection.find(searchQuery);
+
+        while (cursor.hasNext()) {
+            String resultString = cursor.next().toString();
+            LOG.debug("Results :" + resultString);
+            resultList.add(resultString);
+            LOG.debug("Results size" + resultList.size());
+        }
+
+        if (!resultList.isEmpty()) {
+            return resultList.toString();
+        } else {
+            LOG.debug("No Records Found");
+            return "No Records Found";
+        }
+    }
 
 
 }

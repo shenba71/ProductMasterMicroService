@@ -14,4 +14,6 @@ public interface ProductMasterSearchService {
 
     public String searchProducts(String columnName, String[] columnValues,
             String[] columnsToInclude);
+    
+    public String globalSearch(String searchField) throws Exception;
 }

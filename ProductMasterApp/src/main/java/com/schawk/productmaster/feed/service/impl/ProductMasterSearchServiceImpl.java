@@ -89,4 +89,21 @@ public class ProductMasterSearchServiceImpl implements ProductMasterSearchServic
         }
         return searchResult;
     }
+    
+    /**
+     * This is a global search applicable only to specified fields which are given in text indexes
+     * @param searchField
+     * @throws Exception
+     */
+    @Override
+    public String globalSearch(String searchField) throws Exception {
+       
+       if(searchField != null && searchField != ""){
+              return productMasterFeedDao.globalSearch(searchField);
+       } else {
+              LOG.debug("Search field is empty");
+              return "Please enter a text to search";
+       }       
+    }
+
 }

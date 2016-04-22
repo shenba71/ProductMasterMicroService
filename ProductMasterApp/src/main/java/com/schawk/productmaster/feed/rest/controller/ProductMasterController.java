@@ -320,35 +320,45 @@ public class ProductMasterController {
     }
 
     /**
-     * This is a refined search applicable only to specified fields
-     * Example Input : /styles?q={styleNumber=12345,12346}&include=styleNumber,colors
+     * This is a q search which can be used by two ways
+     *               a) Refind search for specified fields
+     *                      Example Input : /styles?q={styleNumber=12345,12346}&include=styleNumber,colors
+     *               b) Global search for specified fields which are mentioned in text indexes
+     *                     Example Input : /styles?q=FOOTWEAR
      * @param globalSearchFields
      * @param fieldsToInclude
      * @return
+     * @throws Exception 
      */
     @RequestMapping(value = "/styles", method = RequestMethod.GET)
     public String searchProducts(
             @RequestParam(value = "q", required = false) String globalSearchFields,
-            @RequestParam(value = "include", required = false) String fieldsToInclude) {
-        LOG.debug(
-                "Query field : " + globalSearchFields + " Fields to include : " + fieldsToInclude);
+            @RequestParam(value = "include", required = false) String fieldsToInclude) throws Exception {
+        LOG.debug("Query field : " + globalSearchFields + " Fields to include : " + fieldsToInclude);
+        
+        if (globalSearchFields.startsWith("{")) {
+              globalSearchFields = globalSearchFields.replaceAll("(\\{|\\})", "");
+            String[] searchFields = globalSearchFields.split("=");
 
-        globalSearchFields = globalSearchFields.replaceAll("(\\{|\\})", "");
-        String[] searchFields = globalSearchFields.split("=");
+            String columnName = searchFields[0];
 
-        String columnName = searchFields[0];
+            String[] columnValues = null;
+            if (StringUtils.isNotEmpty(searchFields[1])) {
+                columnValues = searchFields[1].split(",");
+            }
 
-        String[] columnValues = null;
-        if (StringUtils.isNotEmpty(searchFields[1])) {
-            columnValues = searchFields[1].split(",");
+            String[] columnsToInclude = null;
+            if (StringUtils.isNotEmpty(fieldsToInclude)) {
+                columnsToInclude = fieldsToInclude.split(",");
+            }
+            return productMasterSearchservice.searchProducts(columnName, columnValues,
+                    columnsToInclude);
+        } else {
+              // global search is case insensitive
+            return productMasterSearchservice.globalSearch(globalSearchFields);
         }
-
-        String[] columnsToInclude = null;
-        if (StringUtils.isNotEmpty(fieldsToInclude)) {
-            columnsToInclude = fieldsToInclude.split(",");
-        }
-        return productMasterSearchservice.searchProducts(columnName, columnValues,
-                columnsToInclude);
+      
     }
+
 
 }
