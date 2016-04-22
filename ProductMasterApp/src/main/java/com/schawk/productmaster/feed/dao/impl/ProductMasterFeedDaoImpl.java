@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,8 +134,7 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 		String styleNumber = null;
 		try {
 			LOG.debug("Inside saveProductMetaDataStyle");
-			JSONObject productJson = new JSONObject(productMetaData);
-			styleNumber = productJson.getString("styleNumber");
+			styleNumber = getValueFromJson(productMetaData, PRODUCT_STYLE);
 			DBCollection collection = mongoTemplate.getDb().getCollection(
 					COLLECTION_NAME);
 			DBObject styleObject = (DBObject) JSON.parse(productMetaData);
@@ -151,16 +151,24 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.schawk.productmaster.feed.dao.ProductMasterFeedDao#
+	 * updateProductMetaDataStyle(java.lang.String)
+	 * 
+	 * update the style with given parameters and returns the updated document
+	 * as response
+	 */
 	@Override
 	public String updateProductMetaDataStyle(String productMetaData)
 			throws Exception {
 		LOG.debug("Inside Update Style datas");
-		JSONObject productJson = new JSONObject(productMetaData);
-		String styleNumber = productJson.getString("styleNumber");
+		String styleNumber = getValueFromJson(productMetaData, PRODUCT_STYLE);
 		DBCollection collection = mongoTemplate.getDb().getCollection(
 				COLLECTION_NAME);
-		DBObject obj = (DBObject) JSON.parse(productMetaData);
-		BasicDBObject styleObject = new BasicDBObject("$set", obj);
+		DBObject productObject = (DBObject) JSON.parse(productMetaData);
+		BasicDBObject styleObject = new BasicDBObject("$set", productObject);
 		collection.update(new BasicDBObject("styleNumber", styleNumber),
 				styleObject, true, false);
 		return searchFeedByStyle(styleNumber, null);
@@ -183,20 +191,21 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 		LOG.debug("Inside save color Meta data values");
 		DBCollection collection = mongoTemplate.getDb().getCollection(
 				COLLECTION_NAME);
-		JSONObject productJson = new JSONObject(colorMetaData);
-		String colorNumber = productJson.getString("colorCode");
+		String colorNumber = getValueFromJson(colorMetaData, "colorCode");
 		DBObject obj = (DBObject) JSON.parse(colorMetaData);
 		BasicDBObject colorMetaDataObject = new BasicDBObject("color", obj);
+		// forming query object for find operation
 		BasicDBObject styleObject = new BasicDBObject("styleNumber",
 				styleNumber);
 		BasicDBObject colorObject = new BasicDBObject("colors",
 				colorMetaDataObject);
-		BasicDBObject object = new BasicDBObject();
-		object.append("$addToSet", colorObject).append("$setOnInsert",
+		BasicDBObject objectToInsert = new BasicDBObject();
+		objectToInsert.append("$addToSet", colorObject).append("$setOnInsert",
 				styleObject);
+		// insertion will happen only if record not present for given color
 		if (searchFeedByStyleAndColor(styleNumber, colorNumber)
 				.equalsIgnoreCase("NO RECORDS FOUND FOR GIVEN STYLE AND COLOR")) {
-			collection.update(styleObject, object, true, false);
+			collection.update(styleObject, objectToInsert, true, false);
 			response = searchFeedByStyle(styleNumber, null);
 		} else {
 			response = "Record already exists";
@@ -220,14 +229,15 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 		LOG.debug("Save Size metedata values");
 		DBCollection collection = mongoTemplate.getDb().getCollection(
 				COLLECTION_NAME);
-		JSONObject objects = new JSONObject(sizeMetaData);
-		String sizeCode = objects.getString("sizeCode");
+		String sizeCode = getValueFromJson(sizeMetaData, "sizeCode");
 		DBObject obj = (DBObject) JSON.parse(sizeMetaData);
 		BasicDBObject sizeMetaDataObject = new BasicDBObject("size", obj);
 		BasicDBObject queryObject = new BasicDBObject("styleNumber",
 				styleNumber).append("colors.color.colorCode", colorNumber);
 		BasicDBObject sizeObject = new BasicDBObject("colors.$.color.sizes",
 				sizeMetaDataObject);
+		// If style and color record was not already present, then wil create
+		// style and color record before inserting size metadata
 		if (searchFeedByStyle(styleNumber, null).equalsIgnoreCase(
 				"NO RECORDS FOUND FOR GIVEN STYLE")
 				|| searchFeedByStyleAndColor(styleNumber, colorNumber)
@@ -239,6 +249,7 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 		}
 		BasicDBObject object = new BasicDBObject();
 		object.append("$addToSet", sizeObject);
+		// If a size record was not present, then allow to insert
 		if (searchSizeRecord(styleNumber, colorNumber, sizeCode)
 				.equalsIgnoreCase("NO SIZE RECORDS")) {
 			collection.update(queryObject, object, true, false);
@@ -252,6 +263,16 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.schawk.productmaster.feed.dao.ProductMasterFeedDao#updateColorMetaData
+	 * (java.lang.String, java.lang.String, java.lang.String)
+	 * 
+	 * update the color with given parameters and returns the updated document
+	 * as response
+	 */
 	@Override
 	public String updateColorMetaData(String colorMetaData, String styleNumber,
 			String colorNumber) throws Exception {
@@ -285,6 +306,16 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 		return results;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.schawk.productmaster.feed.dao.ProductMasterFeedDao#updateSizeMetaData
+	 * (java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 * 
+	 * update the size with given parameters and returns the updated document as
+	 * response
+	 */
 	@Override
 	public String updateSizeMetaData(String sizeMetaData, String styleNumber,
 			String colorNumber, String sizeCode) throws Exception {
@@ -301,6 +332,16 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.schawk.productmaster.feed.dao.ProductMasterFeedDao#getIndexForSize
+	 * (java.lang.String, java.lang.String, java.lang.String)
+	 * 
+	 * it will recieve stylenumber,colorcode,sizecode and returns the index for
+	 * the given size code.
+	 */
 	@Override
 	public int getIndexForSize(String styleNumber, String colorCode,
 			String sizeCode) throws Exception {
@@ -456,6 +497,18 @@ public class ProductMasterFeedDaoImpl implements ProductMasterFeedDao {
 			LOG.debug("No Records Found");
 			return "No Records Found";
 		}
+	}
+
+	/**
+	 * @param jsonInput
+	 * @param keyValue
+	 * @return the value of the given key in json string
+	 * @throws JSONException
+	 */
+	private String getValueFromJson(String jsonInput, String keyValue)
+			throws JSONException {
+		JSONObject jsonObject = new JSONObject(jsonInput);
+		return jsonObject.getString(keyValue);
 	}
 
 }
